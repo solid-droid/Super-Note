@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "os:allow-platform",
     "shell:default",
     {
       "identifier": "shell:allow-execute",

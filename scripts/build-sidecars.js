@@ -7,6 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 
 function getTargetTriple() {
+  // Priority 1: Environment variable set by Tauri CLI
+  if (process.env.TAURI_ENV_TARGET_TRIPLE) {
+    return process.env.TAURI_ENV_TARGET_TRIPLE;
+  }
+  // Priority 2: Try to get it from rustc (host triple as fallback)
   try {
     const output = execSync('rustc -vV').toString();
     const hostLine = output.split('\n').find(line => line.startsWith('host:'));
@@ -22,6 +27,13 @@ const isWindows = process.platform === 'win32';
 const ext = isWindows ? '.exe' : '';
 
 console.log(`Target Triple: ${triple}`);
+
+// Check if building for desktop platform
+const isDesktop = triple && !triple.includes('android') && !triple.includes('ios') && !triple.includes('wasm') && !triple.includes('mobile');
+if (!isDesktop) {
+  console.log('Skipping sidecar builds for non-desktop platform.');
+  process.exit(0);
+}
 
 // 1. Build Bun Sidecar
 const bunDir = path.join(rootDir, 'Sidecar', 'src-bun');

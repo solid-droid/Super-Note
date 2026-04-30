@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Command, Child } from "@tauri-apps/plugin-shell";
+import { platform } from "@tauri-apps/plugin-os";
 
 let greetInputEl: HTMLInputElement | null;
 let greetMsgEl: HTMLElement | null;
@@ -19,6 +20,28 @@ async function greet() {
 
 async function runSidecar(name: string) {
   if (!outputEl) return;
+  
+  // Check if we are running inside Tauri
+  const isTauri = !!(window as any).__TAURI_INTERNALS__;
+  if (!isTauri) {
+    outputEl.textContent = "Sidecars are only available when running as a native Tauri app.\n";
+    return;
+  }
+
+  // Check if sidecars are supported on this platform
+  let currentPlatform = 'unknown';
+  try {
+    currentPlatform = await platform();
+  } catch (e) {
+    console.warn('Platform detection failed:', e);
+  }
+  
+  const supportedPlatforms = ['linux', 'windows', 'macos'];
+  if (!supportedPlatforms.includes(currentPlatform)) {
+    outputEl.textContent = `Sidecars are not supported on "${currentPlatform}" platform. They are only available on Desktop (Windows, macOS, Linux).\n`;
+    return;
+  }
+  
   outputEl.textContent = `Running ${name} sidecar...\n`;
 
   try {
