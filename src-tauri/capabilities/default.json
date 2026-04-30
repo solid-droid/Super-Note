@@ -32,6 +32,32 @@
           "sidecar": true
         }
       ]
+    },
+    {
+      "identifier": "shell:allow-stdin-write",
+      "allow": [
+        {
+          "name": "../Sidecar/src-bun/bun-sidecar",
+          "sidecar": true
+        },
+        {
+          "name": "../Sidecar/src-python/python-sidecar",
+          "sidecar": true
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-kill",
+      "allow": [
+        {
+          "name": "../Sidecar/src-bun/bun-sidecar",
+          "sidecar": true
+        },
+        {
+          "name": "../Sidecar/src-python/python-sidecar",
+          "sidecar": true
+        }
+      ]
     }
   ]
 }

@@ -4,10 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:sidecars && vite",
-    "build": "npm run build:sidecars && tsc && vite build",
+    "dev": "npm run build:config && npm run build:sidecars && vite",
+    "build": "npm run build:config && npm run build:sidecars && tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "build:config": "node scripts/build-config.js",
     "build:sidecars": "node scripts/build-sidecars.js"
   },
   "dependencies": {
