@@ -1,0 +1,164 @@
+name: 'publish'
+
+on:
+  push:
+    tags:
+      - '*' # Only run on tag pushes.
+
+env:
+  APP_NAME: "Chamber"
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build changelog
+        id: build_changelog
+        run: |
+          # NOTE: if commits subjects are standardized, you can filter the git log based on feat: and fix:
+          # and then replace "feat:" with "New: " and "fix:" with "Fixed "
+          # when AI gets good, we can also summarized commits into a bullet point list
+          PREV_TAG=$(git tag --list v* | tail -n2 | head -n1)
+          echo "changelog=$(git log $PREV_TAG...${{ github.ref_name }} --pretty=format:"- %s")" >> $GITHUB_OUTPUT
+    outputs:
+      changelog: ${{ steps.build_changelog.outputs.changelog }}
+
+  release:
+    environment: production
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows Desktop Build
+          - os: windows-latest
+            rust-target: ''
+            tauri-args: ''
+            type: 'desktop'
+          # macOS ARM Build
+          - os: macos-latest
+            rust-target: 'aarch64-apple-darwin'
+            tauri-args: '--target aarch64-apple-darwin'
+            type: 'desktop'
+          # macOS Intel Build
+          - os: macos-latest
+            rust-target: 'x86_64-apple-darwin'
+            tauri-args: '--target x86_64-apple-darwin'
+            type: 'desktop'
+          # Linux Desktop Build
+          - os: ubuntu-22.04
+            rust-target: ''
+            tauri-args: ''
+            type: 'desktop'
+          # Android Build
+          - os: ubuntu-latest
+            rust-target: 'aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android'
+            tauri-args: ''
+            type: 'android'
+
+    runs-on: ${{ matrix.os }}
+    needs: [changelog]
+    # if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup Android signing
+        if: matrix.type == 'android'
+        run: |
+          cd src-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_RELEASE_KEY }}" > keystore.properties
+          echo "password=${{ secrets.ANDROID_RELEASE_PASSWORD }}" >> keystore.properties
+          base64 -d <<< "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" > $RUNNER_TEMP/uploadkeystore.jks
+          echo "storeFile=$RUNNER_TEMP/uploadkeystore.jks" >> keystore.properties
+
+      - name: Verify keystore decoding
+        if: matrix.type == 'android'
+        run: |
+          ls -lh $RUNNER_TEMP
+          file $RUNNER_TEMP/uploadkeystore.jks
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Java
+        if: matrix.type == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' 
+          java-version: '17'
+
+      - name: Setup Android SDK
+        if: matrix.type == 'android'
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        if: matrix.type == 'android'
+        run: sdkmanager "ndk;27.0.11902837"
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: install frontend dependencies
+        run: pnpm install
+
+      - name: Build Tauri app
+        if: matrix.type == 'desktop'
+        uses: tauri-apps/tauri-action@v0.5.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "${{ env.APP_NAME }} v__VERSION__"
+          releaseBody: |
+            ${{needs.changelog.outputs.changelog}}
+            See the assets to download this version and install.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri-args }}
+      
+      - name: Get Node project version
+        if: matrix.type == 'android'
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+
+      - name: Build app bundle
+        if: matrix.type == 'android'
+        run: pnpm tauri android build -v
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.11902837
+
+      - name: Rename APK file
+        if: matrix.type == 'android'
+        run: |
+          mv ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version}}.apk
+      
+      - name: Build Android App Bundle
+        if: matrix.type == 'android'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "${{ env.APP_NAME }} v__VERSION__"
+          draft: true
+          prerelease: false
+          files: |
+            ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version}}.apk

@@ -1,0 +1,8 @@
+{
+  "name": "bun-sidecar",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
