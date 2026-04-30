@@ -105,6 +105,22 @@ jobs:
         with:
           node-version: lts/*
 
+      - name: install Bun (Desktop only)
+        if: matrix.type == 'desktop'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: setup Python (Desktop only)
+        if: matrix.type == 'desktop'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: install PyInstaller (Desktop only)
+        if: matrix.type == 'desktop'
+        run: pip install pyinstaller
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
