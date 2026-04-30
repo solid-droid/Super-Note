@@ -130,14 +130,14 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2
 
       - name: install frontend dependencies
         run: pnpm install
 
       - name: Build Tauri app
         if: matrix.type == 'desktop'
-        uses: tauri-apps/tauri-action@v0.5.0
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -166,7 +166,7 @@ jobs:
       - name: Rename APK file
         if: matrix.type == 'android'
         run: |
-          mv ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version}}.apk
+          mv ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version }}.apk
       
       - name: Build Android App Bundle
         if: matrix.type == 'android'
@@ -177,4 +177,4 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version}}.apk
+            ./src-tauri/gen/android/app/build/outputs/apk/universal/release/${{ env.APP_NAME }}-${{ steps.package-version.outputs.current-version }}.apk
