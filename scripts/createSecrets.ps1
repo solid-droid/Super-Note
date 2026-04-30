@@ -55,7 +55,7 @@ $storePassword = Generate-RandomPassword
 $keyPassword = $storePassword
 
 # Generate Android keystore secrets
-$keyAlias = "release"
+$keyAlias = "supernote_upload_key"
 $keystorePath = Join-Path $PSScriptRoot "temp_keystore.jks"
 
 Write-Host "Generating Android keystore..."
