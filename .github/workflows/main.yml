@@ -7,7 +7,6 @@ on:
 
 env:
   APP_NAME: "Chamber"
-  APPIMAGE_EXTRACT_AND_RUN: 1 # Globally bypasses FUSE issues on GitHub Ubuntu runners
 
 jobs:
   changelog:
@@ -50,7 +49,7 @@ jobs:
           # Linux Desktop Build
           - os: ubuntu-22.04
             rust-target: ''
-            tauri-args: ''
+            tauri-args: '--bundles deb,rpm' # <--- FIX: Skip AppImage creation
             type: 'desktop'
           # Android Build
           - os: ubuntu-latest
@@ -71,12 +70,6 @@ jobs:
           echo "password=${{ secrets.ANDROID_RELEASE_PASSWORD }}" >> keystore.properties
           base64 -d <<< "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" > $RUNNER_TEMP/uploadkeystore.jks
           echo "storeFile=$RUNNER_TEMP/uploadkeystore.jks" >> keystore.properties
-
-      - name: Verify keystore decoding
-        if: matrix.type == 'android'
-        run: |
-          ls -lh $RUNNER_TEMP
-          file $RUNNER_TEMP/uploadkeystore.jks
 
       - uses: pnpm/action-setup@v4
         with:
