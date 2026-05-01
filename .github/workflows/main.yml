@@ -6,7 +6,7 @@ on:
       - '*' # Only run on tag pushes.
 
 env:
-  APP_NAME: "Chamber"
+  APP_NAME: "Super-Note"
 
 jobs:
   changelog:
