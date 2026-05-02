@@ -1,0 +1,39 @@
+#chamber-app{
+    height: 100%;
+    width: 100%;
+    background-color: var(--color-background-1);
+    color: var(--color-text-1);
+    display: grid;
+    grid-template-rows: 28px 1fr 28px;
+    .app-header{
+        height: 28px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background-color: var(--color-background-3);
+    }
+
+    .app-footer{
+        height: 28px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background-color: var(--color-background-3);
+    }
+
+    .app-body{
+        height: 100%;
+        width: calc(100% - 2px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid red;
+        background-color: var(--color-background-3);
+    }
+}
