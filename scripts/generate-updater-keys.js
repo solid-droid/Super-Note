@@ -13,7 +13,7 @@ const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
  * and updates the project configuration.
  */
 function generateUpdaterKeys() {
-    const password = process.argv[2] || 'mypassword';
+    const password = process.argv[2];
     
     console.log('🚀 Generating Tauri signing keys...');
     
