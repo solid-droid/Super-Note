@@ -10,7 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-*.local
+~
 
 # Editor directories and files
 .vscode/*
@@ -43,3 +43,4 @@ Sidecar/src-python/build/python-sidecar/EXE-00.toc
 
 package-lock.json
 src-tauri/Cargo.lock
+~/.tauri/myapp.key

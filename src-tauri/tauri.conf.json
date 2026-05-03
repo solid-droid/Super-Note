@@ -26,7 +26,7 @@
   "plugins": {
     "os": {},
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI3MEQyMjBGNjUwNjM0QjkKUldTNU5BWmxEeUlOSjFjY1JiUTRIZ3QycjRWTmdxY1AxRXFKWlRscHVkQjNGRStFZkNoWjI3bngK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ3N0I0NTU0RDdBQTFBQkIKUldTN0dxclhWRVY3UitDWDhqZnhYcmhpS3VVcHNhMnpSMENsNlByd2g4cmdWV1FOSDVDTDNLeDYK",
       "dialog": true,
       "endpoints": [
         "https://github.com/solid-droid/Super-Note/releases/latest/download/latest.json"
