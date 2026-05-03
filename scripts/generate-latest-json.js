@@ -25,59 +25,68 @@ async function generate() {
     const platforms = {};
 
     // Map Tauri targets to JSON platform keys
-    const platformMap = {
-        // Windows
-        'x64_en-US.msi.zip': 'windows-x86_64',
-        'x64.msi.zip': 'windows-x86_64',
-        'x86_64.msi.zip': 'windows-x86_64',
-        'x64_en-US.msi': 'windows-x86_64',
-        'x64.msi': 'windows-x86_64',
-        'x86_64.msi': 'windows-x86_64',
-        'x64-setup.exe': 'windows-x86_64',
-        'x86_64-setup.exe': 'windows-x86_64',
-        
-        // macOS
-        'x86_64.app.tar.gz': 'darwin-x86_64',
-        'aarch64.app.tar.gz': 'darwin-aarch64',
-        'universal.app.tar.gz': 'darwin-universal',
-        
-        // Linux
-        'amd64.deb': 'linux-x86_64',
-        'x86_64.deb': 'linux-x86_64',
-        'AppImage.tar.gz': 'linux-x86_64',
-        'x86_64.AppImage.tar.gz': 'linux-x86_64'
-    };
+    const platformMap = [
+        { ext: 'x64_en-US.msi.zip', platform: 'windows-x86_64' },
+        { ext: 'x64.msi.zip', platform: 'windows-x86_64' },
+        { ext: 'x86_64.msi.zip', platform: 'windows-x86_64' },
+        { ext: 'x64_en-US.msi', platform: 'windows-x86_64' },
+        { ext: 'x64.msi', platform: 'windows-x86_64' },
+        { ext: 'x86_64.msi', platform: 'windows-x86_64' },
+        { ext: 'x64-setup.exe', platform: 'windows-x86_64' },
+        { ext: 'x86_64-setup.exe', platform: 'windows-x86_64' },
+        { ext: 'x86_64.app.tar.gz', platform: 'darwin-x86_64' },
+        { ext: 'aarch64.app.tar.gz', platform: 'darwin-aarch64' },
+        { ext: 'universal.app.tar.gz', platform: 'darwin-universal' },
+        { ext: 'amd64.deb', platform: 'linux-x86_64' },
+        { ext: 'x86_64.deb', platform: 'linux-x86_64' },
+        { ext: 'AppImage.tar.gz', platform: 'linux-x86_64' },
+        { ext: 'x86_64.AppImage.tar.gz', platform: 'linux-x86_64' }
+    ];
 
-    console.log(`📦 Found ${assets.length} assets in release.`);
+    console.log(`📦 Found ${assets.length} total assets in release.`);
+    assets.forEach(a => console.log(`  - ${a.name}`));
 
-    for (const asset of assets) {
-        if (asset.name.endsWith('.sig')) {
-            console.log(`  🔍 Processing signature: ${asset.name}`);
-            const binaryName = asset.name.replace('.sig', '');
-            const binaryAsset = assets.find(a => a.name === binaryName);
+    const sigAssets = assets.filter(a => a.name.endsWith('.sig'));
+    console.log(`  🔍 Found ${sigAssets.length} signature files.`);
+
+    for (const sigAsset of sigAssets) {
+        const binaryName = sigAsset.name.replace('.sig', '');
+        console.log(`  👉 Processing signature: ${sigAsset.name} (looking for binary: ${binaryName})`);
+        
+        const binaryAsset = assets.find(a => a.name === binaryName);
+        
+        if (binaryAsset) {
+            console.log(`    ✅ Found matching binary asset: ${binaryAsset.name}`);
             
-            if (binaryAsset) {
-                // Find matching platform key
-                const platformKey = Object.keys(platformMap).find(ext => binaryName.endsWith(ext));
+            // Find matching platform key by checking if binaryName ends with any of our extensions
+            const match = platformMap.find(m => binaryName.endsWith(m.ext));
+            
+            if (match) {
+                const key = match.platform;
+                console.log(`    🎯 Matched platform ${key} for binary ${binaryName}`);
                 
-                if (platformKey) {
-                    const key = platformMap[platformKey];
-                    console.log(`    ✅ Matched platform ${key} for binary ${binaryName}`);
-                    
-                    // Fetch signature content
-                    const sigResponse = await fetch(asset.browser_download_url);
+                // Fetch signature content
+                try {
+                    const sigResponse = await fetch(sigAsset.browser_download_url);
                     const signature = await sigResponse.text();
-
-                    platforms[key] = {
-                        signature: signature.trim(),
-                        url: binaryAsset.browser_download_url
-                    };
-                } else {
-                    console.log(`    ⚠️  No platform match for binary: ${binaryName}`);
+                    
+                    if (signature) {
+                        platforms[key] = {
+                            signature: signature.trim(),
+                            url: binaryAsset.browser_download_url
+                        };
+                        console.log(`    ⭐ Successfully added ${key} to platforms.`);
+                    } else {
+                        console.log(`    ❌ Signature file was empty: ${sigAsset.name}`);
+                    }
+                } catch (e) {
+                    console.log(`    ❌ Failed to fetch signature content: ${e.message}`);
                 }
             } else {
-                console.log(`    ❌ Binary not found for signature: ${asset.name}`);
+                console.log(`    ⚠️  No platform match in platformMap for binary: ${binaryName}`);
             }
+        } else {
+            console.log(`    ❌ Binary NOT FOUND in release assets for signature: ${sigAsset.name}`);
         }
     }
 
@@ -90,14 +99,15 @@ async function generate() {
 
     const outputPath = path.join(process.cwd(), 'latest.json');
     fs.writeFileSync(outputPath, JSON.stringify(latestJson, null, 2));
-    console.log(`🚀 Generated latest.json:\n`, JSON.stringify(latestJson, null, 2));
+    console.log(`🚀 Final latest.json content:\n`, JSON.stringify(latestJson, null, 2));
 
     // Upload to release
-    console.log(`uploading latest.json to release ${release.id}...`);
+    console.log(`📤 Uploading latest.json to release ${release.id}...`);
     
     // Delete existing latest.json if it exists
     const existingAsset = assets.find(a => a.name === 'latest.json');
     if (existingAsset) {
+        console.log(`  🗑️  Deleting existing latest.json (ID: ${existingAsset.id})...`);
         await octokit.repos.deleteReleaseAsset({
             owner,
             repo,
@@ -121,6 +131,6 @@ async function generate() {
 }
 
 generate().catch(err => {
-    console.error(err);
+    console.error('❌ Script failed:', err);
     process.exit(1);
 });
