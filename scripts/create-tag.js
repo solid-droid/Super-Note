@@ -14,9 +14,28 @@ const infoJsonPath = path.join(rootDir, 'info.json');
  */
 function createTag() {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    let info = {};
+    if (fs.existsSync(infoJsonPath)) {
+        info = JSON.parse(fs.readFileSync(infoJsonPath, 'utf-8'));
+    }
     
     // 1. Determine Tag Name
-    let tag = process.argv[2] || `v${pkg.version}`;
+    let tag = process.argv[2];
+    
+    if (!tag) {
+        // Auto-increment from info.json or fallback to package.json
+        const currentVersion = info.version || pkg.version;
+        const parts = currentVersion.split('.');
+        if (parts.length === 3) {
+            const oldPatch = parts[2];
+            parts[2] = parseInt(parts[2], 10) + 1;
+            tag = `v${parts.join('.')}`;
+            console.log(`📈 Auto-incrementing version: ${currentVersion} -> ${tag.replace('v', '')}`);
+        } else {
+            tag = `v${currentVersion}`;
+        }
+    }
+
     if (!tag.startsWith('v')) tag = `v${tag}`;
 
     // 2. Determine Commit Hash
@@ -34,7 +53,7 @@ function createTag() {
     console.log(`🏷️  Preparing tag: ${tag} on commit: ${commit}`);
 
     // 4. Update info.json
-    const info = {
+    const newInfo = {
         name: pkg.name,
         version: tag.replace('v', ''),
         tag: tag,
@@ -44,16 +63,16 @@ function createTag() {
             repo: repoUrl,
             latest_json: `${repoUrl}/releases/latest/download/latest.json`,
             downloads: {
-                windows: `${repoUrl}/releases/download/${tag}/${pkg.name}_${pkg.version}_x64_en-US.msi.zip`,
-                macos_x64: `${repoUrl}/releases/download/${tag}/${pkg.name}_${pkg.version}_x64.app.tar.gz`,
-                macos_arm: `${repoUrl}/releases/download/${tag}/${pkg.name}_${pkg.version}_aarch64.app.tar.gz`,
-                linux: `${repoUrl}/releases/download/${tag}/${pkg.name}_${pkg.version}_amd64.deb`,
-                android: `${repoUrl}/releases/download/${tag}/${pkg.name}-${pkg.version}.apk`
+                windows: `${repoUrl}/releases/download/${tag}/${pkg.name}_${tag.replace('v', '')}_x64_en-US.msi.zip`,
+                macos_x64: `${repoUrl}/releases/download/${tag}/${pkg.name}_${tag.replace('v', '')}_x64.app.tar.gz`,
+                macos_arm: `${repoUrl}/releases/download/${tag}/${pkg.name}_${tag.replace('v', '')}_aarch64.app.tar.gz`,
+                linux: `${repoUrl}/releases/download/${tag}/${pkg.name}_${tag.replace('v', '')}_amd64.deb`,
+                android: `${repoUrl}/releases/download/${tag}/${pkg.name}-${tag.replace('v', '')}.apk`
             }
         }
     };
 
-    fs.writeFileSync(infoJsonPath, JSON.stringify(info, null, 4));
+    fs.writeFileSync(infoJsonPath, JSON.stringify(newInfo, null, 4));
     console.log('✅ info.json updated with release details.');
 
     // 5. Git Operations
