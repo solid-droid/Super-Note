@@ -4,6 +4,6 @@ console.log("Hello from Bun sidecar!");
 const reader = console[Symbol.asyncIterator]();
 while (true) {
   const { value, done } = await reader.next();
-  if (done) break;
-  console.log(`Bun received: ${value}`);
+  // if (done) break;
+  console.log(`Bun received test: ${value}`);
 }

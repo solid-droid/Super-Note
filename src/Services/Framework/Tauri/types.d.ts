@@ -42,26 +42,17 @@ export interface ITauriSidecar {
         onError?: (err: any) => void;
         onExit?: (payload: { code: number | null; signal: number | null }) => void;
     }): Promise<ISidecarHandle>;
-    nodeJS(data: {
-        id?: string;
-        program?: string;
-        engine?: string;
-        args?: string[];
-        type?: string;
-        msg?: string;
-        env?: Record<string, string>;
-        cwd?: string;
-        encoding?: string;
-        onMessage?: (line: string) => void;
-        onError?: (err: any) => void;
-        onExit?: (payload: { code: number | null; signal: number | null }) => void;
-    }): Promise<ISidecarHandle>;
+    bun(data?: any): Promise<ISidecarHandle>;
+    python(data?: any): Promise<ISidecarHandle>;
+    nodeJS(data?: any): Promise<ISidecarHandle>;
     get(id: string): ISidecarHandle | null;
     list(): Array<{ id: string; program: string; pid: number }>;
     send(id: string, message: string | Uint8Array | number[] | Record<string, any>): Promise<void>;
     send(message: string | Uint8Array | number[] | Record<string, any>): Promise<void>;
     kill(id?: string): Promise<boolean>;
+    killAll(): Promise<boolean[]>;
     isRunning(id?: string): boolean;
+    [key: string]: ISidecarHandle | any; // Allow Proxy access to instances by ID
 }
 
 /**
