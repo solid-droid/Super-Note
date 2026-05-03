@@ -41,3 +41,5 @@ Sidecar/src-python/build/python-sidecar/xref-python-sidecar.html
 Sidecar/src-python/python-sidecar.spec
 Sidecar/src-python/build/python-sidecar/EXE-00.toc
 
+package-lock.json
+src-tauri/Cargo.lock
