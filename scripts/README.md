@@ -28,7 +28,7 @@ node scripts/build-sidecars.js
 ## Updater Key Generator
 **When to use:** To set up or rotate app signing keys for the Tauri Updater.
 ```bash
-# Default password: nikhil1997
+
 node scripts/generate-updater-keys.js [password]
 ```
 - Generates Minisign key pair.

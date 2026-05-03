@@ -13,7 +13,7 @@ const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
  * and updates the project configuration.
  */
 function generateUpdaterKeys() {
-    const password = process.argv[2] || 'nikhil1997';
+    const password = process.argv[2] || 'mypassword';
     
     console.log('🚀 Generating Tauri signing keys...');
     
@@ -38,9 +38,8 @@ function generateUpdaterKeys() {
     const output = child.stdout;
     
     // Regex to capture the multi-line keys from stdout
-    // The keys are usually several lines of base64 after the label
-    const pubKeyMatch = output.match(/Public key: ([\s\S]*?)(?=Private key:|$)/);
-    const privKeyMatch = output.match(/Private key: ([\s\S]*?)(?=Environment variables|$)/);
+    const pubKeyMatch = output.match(/Public:\s*([\s\S]*?)(?=Environment variables|$)/i);
+    const privKeyMatch = output.match(/Private: \(Keep it secret!\)\s*([\s\S]*?)(?=Public:|$)/i);
 
     if (pubKeyMatch && privKeyMatch) {
         const pubKey = pubKeyMatch[1].trim();
@@ -49,8 +48,10 @@ function generateUpdaterKeys() {
         // 1. Save Secrets
         fs.writeFileSync(path.join(secretsDir, 'TAURI_UPDATER_PRIVATE_KEY.txt'), privKey);
         fs.writeFileSync(path.join(secretsDir, 'TAURI_UPDATER_PRIVATE_KEY_PASSWORD.txt'), password);
+        fs.writeFileSync(path.join(secretsDir, 'TAURI_UPDATER_PUBLIC_KEY.txt'), pubKey);
         
         console.log(`✅ Private key saved to scripts/secrets/TAURI_UPDATER_PRIVATE_KEY.txt`);
+        console.log(`✅ Public key saved to scripts/secrets/TAURI_UPDATER_PUBLIC_KEY.txt`);
 
         // 2. Update tauri.conf.json
         try {
