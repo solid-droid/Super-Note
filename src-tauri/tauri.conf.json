@@ -27,6 +27,7 @@
     "os": {},
     "updater": {
       "pubkey": "RWS+ofPjEKkr6yo8IN2RFJbsldymUL9p7lGjVbLhiysacGAiRs+4Muvn",
+      "dialog": true,
       "endpoints": [
         "https://github.com/solid-droid/Super-Note/releases/latest/download/latest.json"
       ]
