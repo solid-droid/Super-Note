@@ -40,3 +40,4 @@ Sidecar/src-python/build/python-sidecar/warn-python-sidecar.txt
 Sidecar/src-python/build/python-sidecar/xref-python-sidecar.html
 Sidecar/src-python/python-sidecar.spec
 Sidecar/src-python/build/python-sidecar/EXE-00.toc
+*.lock
