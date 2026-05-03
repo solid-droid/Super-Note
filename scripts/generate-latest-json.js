@@ -46,24 +46,56 @@ async function generate() {
     console.log(`📦 Found ${assets.length} total assets in release.`);
     assets.forEach(a => console.log(`  - ${a.name}`));
 
-    // Process all assets to find matching platforms
-    for (const asset of assets) {
-        const binaryName = asset.name;
-        console.log(`  👉 Processing asset: ${binaryName}`);
+    const sigAssets = assets.filter(a => a.name.endsWith('.sig'));
+    console.log(`  🔍 Found ${sigAssets.length} signature files.`);
+
+    for (const sigAsset of sigAssets) {
+        const binaryName = sigAsset.name.replace('.sig', '');
+        console.log(`  👉 Processing signature: ${sigAsset.name} (looking for binary: ${binaryName})`);
         
-        // Find matching platform key by checking if binaryName ends with any of our extensions
-        const match = platformMap.find(m => binaryName.endsWith(m.ext));
+        const binaryAsset = assets.find(a => a.name === binaryName);
         
-        if (match) {
-            const key = match.platform;
-            console.log(`    🎯 Matched platform ${key} for binary ${binaryName}`);
+        if (binaryAsset) {
+            console.log(`    ✅ Found matching binary asset: ${binaryAsset.name}`);
             
-            platforms[key] = {
-                url: asset.browser_download_url
-            };
-            console.log(`    ⭐ Successfully added ${key} to platforms.`);
+            const match = platformMap.find(m => binaryName.endsWith(m.ext));
+            
+            if (match) {
+                const key = match.platform;
+                console.log(`    🎯 Matched platform ${key} for binary ${binaryName}`);
+                
+                try {
+                    // Use Octokit to get asset content (more reliable than fetch for private/token-gated assets)
+                    console.log(`    ⬇️  Downloading signature content for ${sigAsset.name}...`);
+                    const { data } = await octokit.repos.getReleaseAsset({
+                        owner,
+                        repo,
+                        asset_id: sigAsset.id,
+                        headers: {
+                            accept: 'application/octet-stream'
+                        }
+                    });
+
+                    // Octokit returns the data as an ArrayBuffer or Buffer
+                    const signature = Buffer.from(data).toString('utf-8');
+                    
+                    if (signature) {
+                        platforms[key] = {
+                            signature: signature.trim(),
+                            url: binaryAsset.browser_download_url
+                        };
+                        console.log(`    ⭐ Successfully added ${key} with signature.`);
+                    } else {
+                        console.log(`    ❌ Signature content was empty.`);
+                    }
+                } catch (e) {
+                    console.log(`    ❌ Failed to get signature content: ${e.message}`);
+                }
+            } else {
+                console.log(`    ⚠️  No platform match for binary: ${binaryName}`);
+            }
         } else {
-            console.log(`    ⚠️  No platform match in platformMap for binary: ${binaryName}`);
+            console.log(`    ❌ Binary NOT FOUND for signature: ${sigAsset.name}`);
         }
     }
 
@@ -78,10 +110,8 @@ async function generate() {
     fs.writeFileSync(outputPath, JSON.stringify(latestJson, null, 2));
     console.log(`🚀 Final latest.json content:\n`, JSON.stringify(latestJson, null, 2));
 
-    // Upload to release
     console.log(`📤 Uploading latest.json to release ${release.id}...`);
     
-    // Delete existing latest.json if it exists
     const existingAsset = assets.find(a => a.name === 'latest.json');
     if (existingAsset) {
         console.log(`  🗑️  Deleting existing latest.json (ID: ${existingAsset.id})...`);
