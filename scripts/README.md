@@ -37,6 +37,22 @@ node scripts/generate-updater-keys.js [password]
 
 ---
 
+## Tag Creator & Release Info
+**When to use:** When you are ready to trigger a new GitHub Release.
+```bash
+# Default: v[package.json version] on latest commit
+node scripts/create-tag.js
+
+# Custom tag on specific commit
+node scripts/create-tag.js v1.2.3 5f3a1b
+```
+- Updates `info.json` with version, date, and predicted download URLs.
+- Automatically commits `info.json`.
+- Creates a Git tag and pushes both the commit and the tag to `origin`.
+- Triggers the GitHub Actions `publish` workflow.
+
+---
+
 ## Secret Generator (CI)
 **When to use:** Preparing for GitHub Actions deployment.
 ```powershell

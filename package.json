@@ -8,7 +8,8 @@
     "build": "npm run build:sidecars && tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "build:sidecars": "node scripts/build-sidecars.js"
+    "build:sidecars": "node scripts/build-sidecars.js",
+    "release": "node scripts/create-tag.js"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
