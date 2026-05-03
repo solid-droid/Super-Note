@@ -7,11 +7,31 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const packageJsonPath = path.join(rootDir, 'package.json');
 const infoJsonPath = path.join(rootDir, 'info.json');
+const cargoTomlPath = path.join(rootDir, 'src-tauri', 'Cargo.toml');
+const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
 
 /**
- * Automatically creates a git tag and updates release info in info.json.
- * Usage: node scripts/create-tag.js [version/tag] [commit-hash]
+ * Updates the version in the specified files.
  */
+function updateVersionFiles(newVersion) {
+    // Update package.json
+    const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    pkg.version = newVersion;
+    fs.writeFileSync(packageJsonPath, JSON.stringify(pkg, null, 2));
+    console.log(`✅ Updated package.json version to ${newVersion}`);
+
+    // Update Cargo.toml
+    let cargoContent = fs.readFileSync(cargoTomlPath, 'utf-8');
+    cargoContent = cargoContent.replace(/version = "[^"]*"/, `version = "${newVersion}"`);
+    fs.writeFileSync(cargoTomlPath, cargoContent);
+    console.log(`✅ Updated Cargo.toml version to ${newVersion}`);
+
+    // Update tauri.conf.json
+    const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, 'utf-8'));
+    tauriConf.version = newVersion;
+    fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2));
+    console.log(`✅ Updated tauri.conf.json version to ${newVersion}`);
+}
 function createTag() {
     const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
     let info = {};
@@ -37,6 +57,11 @@ function createTag() {
     }
 
     if (!tag.startsWith('v')) tag = `v${tag}`;
+
+    const newVersion = tag.replace('v', '');
+
+    // Update version files
+    updateVersionFiles(newVersion);
 
     // 2. Determine Commit Hash
     const commit = process.argv[3] || 'HEAD';
@@ -77,13 +102,13 @@ function createTag() {
 
     // 5. Git Operations
     try {
-        // Add info.json to commit (optional, but recommended if you want it tracked with the tag)
-        execSync('git add info.json');
+        // Add files to commit
+        execSync('git add info.json package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json');
         
         // We only commit if there are changes
-        const status = execSync('git status --porcelain info.json').toString();
+        const status = execSync('git status --porcelain info.json package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json').toString();
         if (status) {
-            execSync(`git commit -m "chore: release ${tag} info update"`);
+            execSync(`git commit -m "chore: release ${tag} version update"`);
         }
 
         // Create Tag

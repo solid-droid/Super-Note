@@ -46,47 +46,24 @@ async function generate() {
     console.log(`📦 Found ${assets.length} total assets in release.`);
     assets.forEach(a => console.log(`  - ${a.name}`));
 
-    const sigAssets = assets.filter(a => a.name.endsWith('.sig'));
-    console.log(`  🔍 Found ${sigAssets.length} signature files.`);
-
-    for (const sigAsset of sigAssets) {
-        const binaryName = sigAsset.name.replace('.sig', '');
-        console.log(`  👉 Processing signature: ${sigAsset.name} (looking for binary: ${binaryName})`);
+    // Process all assets to find matching platforms
+    for (const asset of assets) {
+        const binaryName = asset.name;
+        console.log(`  👉 Processing asset: ${binaryName}`);
         
-        const binaryAsset = assets.find(a => a.name === binaryName);
+        // Find matching platform key by checking if binaryName ends with any of our extensions
+        const match = platformMap.find(m => binaryName.endsWith(m.ext));
         
-        if (binaryAsset) {
-            console.log(`    ✅ Found matching binary asset: ${binaryAsset.name}`);
+        if (match) {
+            const key = match.platform;
+            console.log(`    🎯 Matched platform ${key} for binary ${binaryName}`);
             
-            // Find matching platform key by checking if binaryName ends with any of our extensions
-            const match = platformMap.find(m => binaryName.endsWith(m.ext));
-            
-            if (match) {
-                const key = match.platform;
-                console.log(`    🎯 Matched platform ${key} for binary ${binaryName}`);
-                
-                // Fetch signature content
-                try {
-                    const sigResponse = await fetch(sigAsset.browser_download_url);
-                    const signature = await sigResponse.text();
-                    
-                    if (signature) {
-                        platforms[key] = {
-                            signature: signature.trim(),
-                            url: binaryAsset.browser_download_url
-                        };
-                        console.log(`    ⭐ Successfully added ${key} to platforms.`);
-                    } else {
-                        console.log(`    ❌ Signature file was empty: ${sigAsset.name}`);
-                    }
-                } catch (e) {
-                    console.log(`    ❌ Failed to fetch signature content: ${e.message}`);
-                }
-            } else {
-                console.log(`    ⚠️  No platform match in platformMap for binary: ${binaryName}`);
-            }
+            platforms[key] = {
+                url: asset.browser_download_url
+            };
+            console.log(`    ⭐ Successfully added ${key} to platforms.`);
         } else {
-            console.log(`    ❌ Binary NOT FOUND in release assets for signature: ${sigAsset.name}`);
+            console.log(`    ⚠️  No platform match in platformMap for binary: ${binaryName}`);
         }
     }
 
