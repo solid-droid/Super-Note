@@ -26,17 +26,33 @@ async function generate() {
 
     // Map Tauri targets to JSON platform keys
     const platformMap = {
+        // Windows
         'x64_en-US.msi.zip': 'windows-x86_64',
         'x64.msi.zip': 'windows-x86_64',
         'x86_64.msi.zip': 'windows-x86_64',
+        'x64_en-US.msi': 'windows-x86_64',
+        'x64.msi': 'windows-x86_64',
+        'x86_64.msi': 'windows-x86_64',
+        'x64-setup.exe': 'windows-x86_64',
+        'x86_64-setup.exe': 'windows-x86_64',
+        
+        // macOS
         'x86_64.app.tar.gz': 'darwin-x86_64',
         'aarch64.app.tar.gz': 'darwin-aarch64',
+        'universal.app.tar.gz': 'darwin-universal',
+        
+        // Linux
         'amd64.deb': 'linux-x86_64',
-        'x86_64.deb': 'linux-x86_64'
+        'x86_64.deb': 'linux-x86_64',
+        'AppImage.tar.gz': 'linux-x86_64',
+        'x86_64.AppImage.tar.gz': 'linux-x86_64'
     };
+
+    console.log(`📦 Found ${assets.length} assets in release.`);
 
     for (const asset of assets) {
         if (asset.name.endsWith('.sig')) {
+            console.log(`  🔍 Processing signature: ${asset.name}`);
             const binaryName = asset.name.replace('.sig', '');
             const binaryAsset = assets.find(a => a.name === binaryName);
             
@@ -46,7 +62,7 @@ async function generate() {
                 
                 if (platformKey) {
                     const key = platformMap[platformKey];
-                    console.log(`✅ Found ${key}: ${binaryName}`);
+                    console.log(`    ✅ Matched platform ${key} for binary ${binaryName}`);
                     
                     // Fetch signature content
                     const sigResponse = await fetch(asset.browser_download_url);
@@ -56,7 +72,11 @@ async function generate() {
                         signature: signature.trim(),
                         url: binaryAsset.browser_download_url
                     };
+                } else {
+                    console.log(`    ⚠️  No platform match for binary: ${binaryName}`);
                 }
+            } else {
+                console.log(`    ❌ Binary not found for signature: ${asset.name}`);
             }
         }
     }
