@@ -1,18 +1,18 @@
 {
     "name": "super-note",
-    "version": "0.0.19",
-    "tag": "v0.0.19",
-    "commit": "52bf20d0395f15dd93f3bdfd17c6364baab95813",
-    "date": "2026-05-03T21:23:16.958Z",
+    "version": "0.0.20",
+    "tag": "v0.0.20",
+    "commit": "8e16798b654a60e021ac05e7bc7c1de894d4d9e6",
+    "date": "2026-05-04T05:22:06.862Z",
     "urls": {
         "repo": "https://github.com/solid-droid/Super-Note",
         "latest_json": "https://github.com/solid-droid/Super-Note/releases/latest/download/latest.json",
         "downloads": {
-            "windows": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.19/super-note_0.0.19_x64_en-US.msi.zip",
-            "macos_x64": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.19/super-note_0.0.19_x64.app.tar.gz",
-            "macos_arm": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.19/super-note_0.0.19_aarch64.app.tar.gz",
-            "linux": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.19/super-note_0.0.19_amd64.deb",
-            "android": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.19/super-note-0.0.19.apk"
+            "windows": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.20/super-note_0.0.20_x64_en-US.msi.zip",
+            "macos_x64": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.20/super-note_0.0.20_x64.app.tar.gz",
+            "macos_arm": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.20/super-note_0.0.20_aarch64.app.tar.gz",
+            "linux": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.20/super-note_0.0.20_amd64.deb",
+            "android": "https://github.com/solid-droid/Super-Note/releases/download/v0.0.20/super-note-0.0.20.apk"
         }
     }
 }
