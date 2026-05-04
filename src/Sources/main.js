@@ -22,7 +22,7 @@ function createBasicUI() {
     DOM.root.append(DOM.body);
     loadsamplebody();
 
-    DOM.footer = $('<div class="app-footer">Footer</div>');
+    DOM.footer = $('<div class="app-footer">Footer new version</div>');
     DOM.root.append(DOM.footer);
 }
 
