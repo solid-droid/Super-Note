@@ -146,7 +146,7 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.tauri-args }}
-          uploadUpdaterJson: ${{ matrix.upload-updater || false }}
+          includeUpdaterJson: ${{ matrix.upload-updater || false }}
       
       - name: Extract version from tag
         if: matrix.type == 'android'
